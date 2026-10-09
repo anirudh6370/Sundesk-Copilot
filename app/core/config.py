@@ -1,0 +1,40 @@
+import os
+from functools import lru_cache
+from pathlib import Path
+from dotenv import load_dotenv
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+BASE_DIR = Path(__file__).resolve().parents[2]
+
+# LangSmith reads its settings from os.environ, so load .env there too
+load_dotenv(BASE_DIR / ".env")
+if os.getenv("LANGSMITH_API_KEY"):
+    os.environ.setdefault("LANGSMITH_TRACING", "true")
+    os.environ.setdefault("LANGSMITH_PROJECT", "sundesk-copilot")
+
+class Settings(BaseSettings):
+    app_name: str = "SunDesk Copilot"
+    app_env: str = "development"
+    groq_api_key: str = ""
+    tavily_api_key: str = ""
+    pinecone_api_key: str = ""
+    pinecone_index_name: str = "sundesk-solar-rag"
+    pinecone_namespace: str = "aravalli-solar-kb"
+    embedding_model: str = "sentence-transformers/all-MiniLM-L6-v2"
+    groq_model: str = "openai/gpt-oss-20b"
+    top_k: int = 4
+    max_retries: int = 1
+    admin_api_key: str = "change-me"
+    audit_db_path: str = str(BASE_DIR / "data" / "audit.db")
+    checkpoint_db_path: str = str(BASE_DIR / "data" / "chat_checkpoints.db")
+    upload_dir: str = str(BASE_DIR / "uploads")
+    sample_kb_dir: str = str(BASE_DIR / "docs" / "knowledge_base")
+
+    model_config = SettingsConfigDict(env_file=str(BASE_DIR / ".env"), extra="ignore")
+
+
+
+
+@lru_cache
+def get_settings() -> Settings:
+    return Settings()
